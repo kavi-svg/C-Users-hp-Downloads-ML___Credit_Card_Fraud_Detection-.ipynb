@@ -1,75 +1,98 @@
-<header>
+ # Importing all the necessary Libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib import gridspec
+#Loading the Data
+data = pd.read_csv("/content/creditcard (1).csv")
+data.head(5)
+#Understanding the Data
+print(data.describe())
+#Describing the Data
+#Imbalance in the data
+fraud = data[data['Class'] == 1]
+valid = data[data['Class'] == 0]
+outlierFraction = len(fraud)/float(len(valid))
+print(outlierFraction)
+print('Fraud Cases: {}'.format(len(data[data['Class'] == 1])))
+print('Valid Transactions: {}'.format(len(data[data['Class'] == 0])))
+#Print the amount details for Fraudulent Transaction
+print("Amount details of the fraudulent transaction")
+fraud.Amount.describe()
+# Print the amount details for Normal Transaction
+print("details of valid transaction")
+valid.Amount.describe()
+#Plotting the Correlation Matrix
+corrmat = data.corr()
+fig = plt.figure(figsize = (12, 9))
+sns.heatmap(corrmat, vmax = .8, square = True)
+plt.show()
+#Separating the X and the Y values
+# dividing the X and the Y from the dataset
+X = data.drop(['Class'], axis = 1)
+Y = data["Class"]
+print(X.shape)
+print(Y.shape)
+# getting just the values for the sake of processing
+# (its a numpy array with no columns)
+xData = X.values
+yData = Y.values
+#Training and Testing Data Bifurcation
+# Using Scikit-learn to split data into training and testing sets
+from sklearn.model_selection import train_test_split
+# Split the data into training and testing sets
+xTrain, xTest, yTrain, yTest = train_test_split(
+        xData, yData, test_size = 0.2, random_state = 42)
 
-<!--
-  <<< Author notes: Course header >>>
-  Include a 1280×640 image, course title in sentence case, and a concise description in emphasis.
-  In your repository settings: enable template repository, add your 1280×640 social image, auto delete head branches.
-  Add your open source license, GitHub uses MIT license.
--->
+#Building a Random Forest Model using scikit learn
+from sklearn.ensemble import RandomForestClassifier
 
-# Introduction to GitHub
+rfc = RandomForestClassifier()
+rfc.fit(xTrain, yTrain)
+# predictions
+yPred = rfc.predict(xTest)
+from sklearn.impute import SimpleImputer
+print("NaN values in yTest before imputation:", np.isnan(yTest).sum())
 
-_Get started using GitHub in less than an hour._
+imputer = SimpleImputer(strategy='most_frequent')
+yTest = imputer.fit_transform(yTest.reshape(-1, 1)).flatten()
+print("NaN values in yTest after imputation:", np.isnan(yTest).sum())
+# Building all kinds of evaluating parameters
+# Evaluating the classifier
+# printing every score of the classifier
+# scoring in anything
+from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import precision_score, recall_score
+from sklearn.metrics import f1_score, matthews_corrcoef
+from sklearn.metrics import confusion_matrix
 
-</header>
+n_outliers = len(fraud)
+n_errors = (yPred != yTest).sum()
+print("The model used is Random Forest classifier")
 
-<!--
-  <<< Author notes: Step 1 >>>
-  Choose 3-5 steps for your course.
-  The first step is always the hardest, so pick something easy!
-  Link to docs.github.com for further explanations.
-  Encourage users to open new tabs for steps!
--->
+acc = accuracy_score(yTest, yPred)
+print("The accuracy is {}".format(acc))
 
-## Step 1: Create a branch
+prec = precision_score(yTest, yPred)
+print("The precision is {}".format(prec))
 
-_Welcome to "Introduction to GitHub"! :wave:_
+rec = recall_score(yTest, yPred)
+print("The recall is {}".format(rec))
 
-**What is GitHub?**: GitHub is a collaboration platform that uses _[Git](https://docs.github.com/get-started/quickstart/github-glossary#git)_ for versioning. GitHub is a popular place to share and contribute to [open-source](https://docs.github.com/get-started/quickstart/github-glossary#open-source) software.
-<br>:tv: [Video: What is GitHub?](https://www.youtube.com/watch?v=pBy1zgt0XPc)
+f1 = f1_score(yTest, yPred)
+print("The F1-Score is {}".format(f1))
 
-**What is a repository?**: A _[repository](https://docs.github.com/get-started/quickstart/github-glossary#repository)_ is a project containing files and folders. A repository tracks versions of files and folders. For more information, see "[About repositories](https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories)" from GitHub Docs.
-
-**What is a branch?**: A _[branch](https://docs.github.com/en/get-started/quickstart/github-glossary#branch)_ is a parallel version of your repository. By default, your repository has one branch named `main` and it is considered to be the definitive branch. Creating additional branches allows you to copy the `main` branch of your repository and safely make any changes without disrupting the main project. Many people use branches to work on specific features without affecting any other parts of the project.
-
-Branches allow you to separate your work from the `main` branch. In other words, everyone's work is safe while you contribute. For more information, see "[About branches](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-branches)".
-
-**What is a profile README?**: A _[profile README](https://docs.github.com/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/managing-your-profile-readme)_ is essentially an "About me" section on your GitHub profile where you can share information about yourself with the community on GitHub.com. GitHub shows your profile README at the top of your profile page. For more information, see "[Managing your profile README](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/managing-your-profile-readme)".
-
-![profile-readme-example](/images/profile-readme-example.png)
-
-### :keyboard: Activity: Your first branch
-
-1. Open a new browser tab and navigate to your newly made repository. Then, work on the steps in your second tab while you read the instructions in this tab.
-2. Navigate to the **< > Code** tab in the header menu of your repository.
-
-   ![code-tab](/images/code-tab.png)
-
-3. Click on the **main** branch drop-down.
-
-   ![main-branch-dropdown](/images/main-branch-dropdown.png)
-
-4. In the field, name your branch `my-first-branch`. In this case, the name must be `my-first-branch` to trigger the course workflow.
-5. Click **Create branch: my-first-branch** to create your branch.
-
-   ![create-branch-button](/images/create-branch-button.png)
-
-   The branch will automatically switch to the one you have just created.
-   The **main** branch drop-down bar will reflect your new branch and display the new branch name.
-
-6. Wait about 20 seconds then refresh this page (the one you're following instructions from). [GitHub Actions](https://docs.github.com/en/actions) will automatically update to the next step.
-
-<footer>
-
-<!--
-  <<< Author notes: Footer >>>
-  Add a link to get support, GitHub status page, code of conduct, license link.
--->
-
----
-
-Get help: [Post in our discussion board](https://github.com/orgs/skills/discussions/categories/introduction-to-github) &bull; [Review the GitHub status page](https://www.githubstatus.com/)
-
-&copy; 2024 GitHub &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
-
-</footer>
+MCC = matthews_corrcoef(yTest, yPred)
+print("The Matthews correlation coefficient is{}".format(MCC))
+#Visualizing the Confusion Matrix
+# printing the confusion matrix
+LABELS = ['Normal', 'Fraud']
+conf_matrix = confusion_matrix(yTest, yPred)
+plt.figure(figsize =(12, 12))
+sns.heatmap(conf_matrix, xticklabels = LABELS,
+            yticklabels = LABELS, annot = True, fmt ="d");
+plt.title("Confusion matrix")
+plt.ylabel('True class')
+plt.xlabel('Predicted class')
+plt.show()
